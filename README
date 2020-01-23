@@ -1,0 +1,38 @@
+The project contains a Client and a Watcher. The Client must be run where the
+zookeeper server is running, and there must be a Watcher on each server that
+runs a memcached instance.
+The Client takes as parameters the input file and, optionally, the port on
+which zookeeper server runs. We can also pass a third parameter to enable
+"debugging" - many messages.
+The Watcher take as parameter a config file which has the following format:
+zookeper_ip zookeper_port
+memcached_ip memcached_port
+The memcached_ip represents our server public ip where the Client can connect.
+The memcached_port represents the port on which the memcached daemon runs.
+
+In the MemCachedWrapper class we interact with jna-libmemcached. In ClientLib we
+set the distribution algorithm to ketama, to mitigate server churn. The
+ClientLib also interacts with zookeeper to add/remove memcached servers (it
+listens for NodeChildrenChanged events for the /dcc_a4 node).
+
+We use MemCachedWatcher to keep track of the local memcached daemon. We make
+requests to it every second to check its liveness. To signal our memcached server
+to the client we create a EPHEMERAL_SEQUENTIAL node as a child of /dcc_a4 node.
+If our memcached dies, we delete our node. If we die, the node is automatically
+delete. If the connection dies, zookeeper will eventually delete our node (the
+connection timeout is set to 100ms).
+
+We also provide a few example scripts as well Client/Watcher.jar.
+
+start_client.sh starts the client, it must be run with Client.jar
+is located and it receives as parameters the input_file, and optionally the port
+of zookeeper and any other random string to enable debugging.
+
+create_watcher_config.sh creates a folder with all that should be needed to run
+the watcher on a server. It receives as parameters: the folder, zookeeper_ip,
+zookeeper_port, memcached_ip, memcached_port (the memcached_ip represents the
+public ip of the server where we will eventually run the watcher). This folder
+must be copied on the server where the memcached daemon runs.
+
+start_watcher.sh starts the watcher, it must be run on the server whose memcached
+daemon we want to watch and from the folder created by create_watcher_config.sh.

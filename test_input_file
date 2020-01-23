@@ -1,0 +1,34 @@
+GET a
+SET a b
+SET b c
+SET c d
+SET d e
+SET e f
+SET f g
+SET g h
+SET h i
+
+SLEEP 10
+
+GET a
+SET a c
+GET b
+GET a
+GET e
+GET f
+SET f f
+GET f
+GET g
+
+SLEEP 15000
+
+SET a b
+SET b c
+SET c d
+GET a
+GET b
+GET c
+GET d
+GET e
+GET f
+GET g
